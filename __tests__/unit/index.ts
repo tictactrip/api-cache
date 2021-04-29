@@ -1,6 +1,6 @@
 import * as redis from 'redis';
-import { ApiCache, ERedisFlag } from '../../src';
 import { Request } from 'express';
+import { ApiCache, ERedisFlag } from '../../src';
 
 describe('cacheService.ts', () => {
   let redisClient: redis.RedisClient;
