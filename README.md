@@ -7,7 +7,7 @@
 
 ## Description
 
-...
+This package provides get and set methods to interact with redis cache for a given express route.
 
 ## Install
 
@@ -18,7 +18,66 @@ yarn add @tictactrip/api-cache
 ## How to use it?
 
 ```ts
-// ...
+import { ApiCache } from '@tictactrip/api-cache';
+import { redisClient } from 'redis';
+import { Request } from 'express';
+
+// Redis connection
+const redisClient = redis.createClient();
+
+// Create your ApiCache instance
+const apiCache = new ApiCache(redisClient);
+
+const dataToCache = {
+    name: "apiCache",
+    description: "I can get and set on your redis cache."
+}
+
+// Caches "dataToCache" for 20 days
+apiCache.set(request, dataToCache, 1000 * 60 * 60 * 24 * 20)
+
+// Gets the data stored (returns null, if nothing found)
+const cachedData = apiCache.get(request);
+```
+
+## Key structure
+
+By default, Redis keys follow the below pattern (keys are in lowercase).
+
+```
+{prefix}{http_method}___{path}___{query}
+```
+
+**Examples**
+
+1. Example (route without query string)
+
+Route: `GET /users/9090/infos`
+Generated key: `get__users/9090/infos__`
+
+2. Example (route with query string)
+
+Route: `GET /users/9090/infos?param1=true&param2=str`
+Generated key: `get__users/9090/infos__param1trueparam2str`
+
+## Configuration
+
+You can pass an optional configuration on instantiation. It allows you to modify the prefix of Redis keys and also to edit the default cache duration.
+
+**By default**, there is no prefix and the cache duration is set on `1 day`.
+
+```ts
+import { IApiCacheConfiguration } from '@tictactrip/api-cache';
+
+const configuration: IApiCacheConfiguration = {
+    prefix : 'myprefix__',
+    expirationInMS : 1000 * 60 * 60
+}
+
+const redisClient = redis.createClient();
+
+// Create your ApiCache instance
+const apiCache = new ApiCache(redisClient, configuration);
 ```
 
 ## Scripts
