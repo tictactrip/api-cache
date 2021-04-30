@@ -7,7 +7,7 @@
 
 ## Description
 
-This package provides get and set methods to interact with redis cache for a given express route
+This package provides get and set methods to interact with redis cache for a given express route.
 
 ## Install
 
@@ -30,7 +30,7 @@ const apiCache = new ApiCache(redisClient);
 
 const dataToCache = { 
   name: "apiCache",
-  description: "I can get and set on your redis cache"
+  description: "I can get and set on your redis cache."
 }
 
 // You can set the cached response for your Express Request for the next 20 days
@@ -43,7 +43,7 @@ const cachedData = apiCache.get(request)
 
 ### Key structure
 
-By default, redis keys follow this pattern (note that all keys are lowerCased)
+By default, redis keys follow this pattern (note that all keys are in lowercase).
 
 ```
 {prefix}{http_method}___{path}___{query}
@@ -68,7 +68,7 @@ get__users/9090/infos__param1trueparam2str
 ### Configuration
 
 You can pass an optional configuration on instantiation. It allows you to modify the prefix of redis keys and also to edit the default cache duration.
-**By default** there is `no prefix and the cache duration is set on `15 days`
+**By default** there is `no prefix and the cache duration is set on `15 days`.
 
 ```ts
 import { IApiCacheConfiguration } from './types';
