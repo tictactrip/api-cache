@@ -9,7 +9,7 @@ import { defaultConfiguration } from './config';
 
 /**
  * @class ApiCache
- * @description
+ * @description get and set redis cache for a given express route
  */
 export class ApiCache {
   private readonly redis: RedisClient;
@@ -71,7 +71,7 @@ export class ApiCache {
   /**
    * @description Builds the redis key associated with the corresponding request.
    * @param {Request} req Express request
-   * @returns {string} The key that will be used by the redisClient
+   * @returns {string} key used by redisClient
    * @private
    */
   private buildKey(req: Request): string {
