@@ -103,7 +103,7 @@ describe('apiCache.ts', () => {
       await apiCache.setCache({ query: {}, method: 'GET', path: '/langage/XML/infos' } as Request, data, 2592000000);
 
       expect(redisSetAsyncSpy).toBeCalledTimes(1);
-      expect(redisSetAsyncSpy).nthCalledWith(
+      expect(redisSetAsyncSpy).toHaveBeenNthCalledWith(
         1,
         'get__langage/xml/infos__',
         'G6UBABwHzrk8JjkKvE79lCJbe0asK9WbzSc3QNVvNItOV9/7v/nCMbHA7O43ps4BvKZRBGGZnjR1WOS09YUIh0TRWnqJcLhZzxAeeAqKvXvTgm8SaBqebQQRSUsgjNRVcAyhP4HQ8v8CG1FAdbk/jQdAlJG/BBit6lel6RpI0Osvb0RD7uRlDTgWU6tlcbnUe14Sg7UOvamb3X+Zn0kOXtctFGoeVBmhqoqmjzENrEM+EY73j6QsxEl1uCc/L8AgTstzoDCz5+OxLHMWcqejn9ZN7Mv0Q3tfyHAi4CSMIth9yBk=',
