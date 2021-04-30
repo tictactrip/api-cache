@@ -68,7 +68,7 @@ get__users/9090/infos__param1trueparam2str
 ### Configuration
 
 You can pass an optional configuration on instantiation. It allows you to modify the prefix of redis keys and also to edit the default cache duration.
-**By default** there is `no prefix and the cache duration is set on `15 days`.
+**By default** there is `no prefix and the cache duration is set on `1 day`.
 
 ```ts
 import { IApiCacheConfiguration } from './types';
