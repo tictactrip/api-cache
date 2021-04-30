@@ -9,7 +9,7 @@ import { defaultConfiguration } from './config';
 
 /**
  * @class ApiCache
- * @description get and set redis cache for a given express route
+ * @description Get and set redis cache for a given express route.
  */
 export class ApiCache {
   private readonly redis: RedisClient;
