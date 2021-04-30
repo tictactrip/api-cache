@@ -30,8 +30,9 @@ const apiCache = new ApiCache(redisClient);
 
 const dataToCache = { 
   name: "apiCache",
-  description: "I can get and set to your redis cache"
+  description: "I can get and set on your redis cache"
 }
+
 // You can set the cached response for your Express Request for 20 days
 apiCache.set(request, dataToCache, 1000*60*60*24*20)
 
