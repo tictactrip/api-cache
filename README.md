@@ -33,7 +33,7 @@ const dataToCache = {
   description: "I can get and set on your redis cache"
 }
 
-// You can set the cached response for your Express Request for 20 days
+// You can set the cached response for your Express Request for the next 20 days
 apiCache.set(request, dataToCache, 1000*60*60*24*20)
 
 // You can get the cached response for your Express Request, it will return null if no resposne is cached.
