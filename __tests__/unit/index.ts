@@ -2,7 +2,7 @@ import * as redis from 'redis';
 import { Request } from 'express';
 import { ApiCache, ERedisFlag } from '../../src';
 
-describe('cacheService.ts', () => {
+describe('apiCache.ts', () => {
   let redisClient: redis.RedisClient;
   let apiCache: ApiCache;
 
@@ -20,7 +20,7 @@ describe('cacheService.ts', () => {
     jest.clearAllMocks();
   });
 
-  describe('#getProviderCache', () => {
+  describe('#getCache', () => {
     it('should return cache data', async () => {
       const data = {
         glossary: {
@@ -54,7 +54,7 @@ describe('cacheService.ts', () => {
       const res = await apiCache.getCache({ query: {}, method: 'GET', path: '/langage/SGML/infos' } as Request);
 
       expect(redisGetAsyncSpy).toBeCalledTimes(1);
-      expect(redisGetAsyncSpy).toBeCalledWith('get__langage/sgml/infos__');
+      expect(redisGetAsyncSpy).toHaveBeenNthCalledWith(1, 'get__langage/sgml/infos__');
       expect(res).toStrictEqual(data);
     });
 
@@ -68,12 +68,12 @@ describe('cacheService.ts', () => {
       } as Request);
 
       expect(redisGetAsyncSpy).toBeCalledTimes(1);
-      expect(redisGetAsyncSpy).toBeCalledWith('get__langage/invalid/infos__');
+      expect(redisGetAsyncSpy).toHaveBeenNthCalledWith(1, 'get__langage/invalid/infos__');
       expect(res).toStrictEqual(undefined);
     });
   });
 
-  describe('#setProviderCache', () => {
+  describe('#setCache', () => {
     it('should store cache data', async () => {
       const redisSetAsyncSpy = jest.spyOn(apiCache, 'redisSetAsync').mockResolvedValue('GET_langage/XAML/infos_');
 
@@ -100,11 +100,7 @@ describe('cacheService.ts', () => {
         },
       };
 
-      await apiCache.setCache(
-        { query: {}, method: 'GET', path: '/langage/XML/infos' } as Request,
-        data,
-        1000 * 60 * 60 * 24 * 30,
-      );
+      await apiCache.setCache({ query: {}, method: 'GET', path: '/langage/XML/infos' } as Request, data, 2592000000);
 
       expect(redisSetAsyncSpy).toBeCalledTimes(1);
       expect(redisSetAsyncSpy).nthCalledWith(

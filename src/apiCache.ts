@@ -8,15 +8,16 @@ import { ERedisFlag, IApiCacheConfiguration } from './types';
 import { defaultConfiguration } from './config';
 
 /**
- * ApiCache class.
+ * @class ApiCache
+ * @description
  */
 export class ApiCache {
   private readonly redis: RedisClient;
+  private readonly compressAsync: (buffer: Buffer) => Promise<Buffer>;
+  private readonly decompressAsync: (buffer: Buffer) => Promise<Buffer>;
   private config: IApiCacheConfiguration;
   public redisSetAsync: (key: string, value: string, flag?: ERedisFlag, expirationInMS?: number) => Promise<unknown>;
   public redisGetAsync: (key: string) => Promise<string | null>;
-  private readonly compressAsync: (buffer: Buffer) => Promise<Buffer>;
-  private readonly decompressAsync: (buffer: Buffer) => Promise<Buffer>;
 
   /**
    * @description Constructor.
@@ -33,28 +34,16 @@ export class ApiCache {
   }
 
   /**
-   * @description Builds the redis key associated with the corresponding request.
-   * @param {Request} req Express request
-   * @private
-   */
-  private buildKey(req: Request): string {
-    const generatedQuery = toPairs(req.query)
-      .map((pair: [string, unknown]) => pair.join(''))
-      .join('');
-
-    return `${this.config.prefix}${req.method}__${req.path.slice(1)}__${generatedQuery}`.toLowerCase();
-  }
-
-  /**
    * @description Retrieves data from cache.
    * @param {Request} req Express request to build redis key
-   * @returns {Promise<any>} Cache data
+   * @returns {Promise<unknown>} Cache data
    */
   async getCache(req: Request): Promise<unknown> {
     const rawData: string = (await this.redisGetAsync(this.buildKey(req))) as string;
 
     if (rawData) {
       const buffer: Buffer = await this.decompressAsync(Buffer.from(rawData, 'base64'));
+
       return flatted.parse(buffer.toString());
     }
 
@@ -64,18 +53,32 @@ export class ApiCache {
   /**
    * @description Stores data into cache.
    * @param {Request} req Express request associated with the data
-   * @param {any} data - Data to cache
+   * @param {unknown} data - Data to cache
    * @param {number} durationInMS Cache expiration in ms
    * @returns Promise<string>
    */
   async setCache(req: Request, data: unknown, durationInMS: number = this.config.expirationInMS): Promise<string> {
     const compressedData: Buffer = await this.compressAsync(Buffer.from(flatted.stringify(data)));
 
-    return (await this.redisSetAsync(
+    return this.redisSetAsync(
       this.buildKey(req),
       compressedData.toString('base64'),
       ERedisFlag.EXPIRATION_IN_MS,
       durationInMS,
-    )) as string;
+    ) as Promise<string>;
+  }
+
+  /**
+   * @description Builds the redis key associated with the corresponding request.
+   * @param {Request} req Express request
+   * @returns {string} The key that will be used by the redisClient
+   * @private
+   */
+  private buildKey(req: Request): string {
+    const generatedQuery = toPairs(req.query)
+      .map((pair: [string, unknown]) => pair.join(''))
+      .join('');
+
+    return `${this.config.prefix}${req.method}__${req.path.slice(1)}__${generatedQuery}`.toLowerCase();
   }
 }
