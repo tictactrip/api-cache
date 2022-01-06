@@ -39,7 +39,7 @@ export class ApiCache {
    * @returns {Promise<unknown>} Cache data
    */
   async getCache(req: Request): Promise<unknown> {
-    const rawData: string = (await this.redisGetAsync(this.buildKey(req))) as string;
+    const rawData: string | null = await this.redisGetAsync(this.buildKey(req));
 
     if (rawData) {
       const buffer: Buffer = await this.decompressAsync(Buffer.from(rawData, 'base64'));
@@ -57,15 +57,17 @@ export class ApiCache {
    * @param {number} durationInMS Cache expiration in ms
    * @returns Promise<string>
    */
-  async setCache(req: Request, data: unknown, durationInMS: number = this.config.expirationInMS): Promise<string> {
+  async setCache(req: Request, data: unknown, durationInMS: number = this.config.expirationInMS): Promise<boolean> {
     const compressedData: Buffer = await this.compressAsync(Buffer.from(flatted.stringify(data)));
 
-    return this.redisSetAsync(
+    const redisOutput = await this.redisSetAsync(
       this.buildKey(req),
       compressedData.toString('base64'),
       ERedisFlag.EXPIRATION_IN_MS,
       durationInMS,
-    ) as Promise<string>;
+    );
+
+    return redisOutput === 'OK';
   }
 
   /**
