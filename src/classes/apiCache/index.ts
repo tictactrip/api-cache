@@ -1,5 +1,5 @@
 import { brotliCompress, brotliDecompress } from 'zlib';
-import { RedisClient } from 'redis';
+import * as redis from 'redis';
 import { promisify } from 'util';
 import { Request } from 'express';
 import { toPairs } from 'lodash';
@@ -12,7 +12,7 @@ import { defaultConfiguration } from './config';
  * @description Get and set redis cache for a given express route.
  */
 export class ApiCache {
-  private readonly redis: RedisClient;
+  private readonly redis: redis.RedisClient;
   private readonly compressAsync: (buffer: Buffer) => Promise<Buffer>;
   private readonly decompressAsync: (buffer: Buffer) => Promise<Buffer>;
   private config: IApiCacheConfiguration;
@@ -24,7 +24,7 @@ export class ApiCache {
    * @param {RedisClient} redis
    * @param {IApiCacheConfiguration} config
    */
-  constructor(redis: RedisClient, config?: IApiCacheConfiguration) {
+  constructor(redis: redis.RedisClient, config?: IApiCacheConfiguration) {
     this.redis = redis;
     this.config = { ...defaultConfiguration, ...config };
     this.redisSetAsync = promisify(this.redis.set).bind(this.redis);

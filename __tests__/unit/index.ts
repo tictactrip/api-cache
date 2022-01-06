@@ -1,19 +1,12 @@
-import * as redis from 'redis';
+import { RedisClient } from 'redis';
 import { Request } from 'express';
 import { ApiCache, ERedisFlag } from '../../src';
 
 describe('apiCache.ts', () => {
-  let redisClient: redis.RedisClient;
-  let apiCache: ApiCache;
-
-  beforeAll(() => {
-    jest.spyOn(redis, 'createClient').mockReturnValue(<redis.RedisClient>{
-      get: (key: string): boolean => true,
-      set: (key: string, value: string): boolean => true,
-      quit: (): boolean => true,
-    });
-    redisClient = redis.createClient();
-    apiCache = new ApiCache(redisClient);
+  const mockRedisClient: RedisClient = <RedisClient>(<unknown>{
+    get: jest.fn().mockResolvedValue(''),
+    set: jest.fn().mockResolvedValue('OK'),
+    quit: jest.fn().mockResolvedValue(undefined),
   });
 
   afterEach(() => {
