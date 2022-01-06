@@ -42,6 +42,7 @@ const cachedData = apiCache.get(request);
 
 ## Key structure
 
+### Default
 By default, Redis keys follow the below pattern (keys are in lowercase).
 
 ```
@@ -60,11 +61,37 @@ Generated key: `get__users/9090/infos__`
 Route: `GET /users/9090/infos?param1=true&param2=str`
 Generated key: `get__users/9090/infos__param1trueparam2str`
 
+
+### Custom
+You can, however, define a key builder function of type `TKeyBuilder` that is provided the express `Request` and the prefix, and returns a string. If there is no key builder for a method, it just uses the default redis key builder.
+
+```ts
+import * as redis from 'redis';
+import { Request } from 'express';
+import { IApiCacheConfiguration, TKeyBuilder, EHttpMethod } from '@tictactrip/api-cache';
+
+const getKeyBuilder: TKeyBuilder = (req: Request, prefix: string) => `${prefix}_${req.path}`;
+const postKeyBuilder: TKeyBuilder = (req: Request, prefix: string) => `${prefix}_${req.path}_{req.body.data}$`;
+
+const redisClient: redis.RedisClient = redis.createClient();
+
+const configuration: IApiCacheConfiguration = {
+  prefix: 'prefix',
+  expirationInMS: 12_000_000,
+  keyBuilders: {
+    [EHttpMethod.GET]: getKeyBuilder,
+    [EHttpMethod.POST]: postKeyBuilder,
+  }
+}
+
+const apiCache = new ApiCache(redisClient, configuration);
+```
+
 ## Configuration
 
 You can pass an optional configuration on instantiation. It allows you to modify the prefix of Redis keys and also to edit the default cache duration.
 
-**By default**, there is no prefix and the cache duration is set on `1 day`.
+**By default**, the prefix is an empty string (`''`) and the cache duration is set on `1 day`.
 
 ```ts
 import { IApiCacheConfiguration } from '@tictactrip/api-cache';

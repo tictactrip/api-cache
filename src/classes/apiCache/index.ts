@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { Request } from 'express';
 import { toPairs } from 'lodash';
 import * as flatted from 'flatted';
-import { ERedisFlag, IApiCacheConfiguration } from './types';
+import { EHttpMethod, ERedisFlag, IApiCacheConfiguration, TKeyBuilder } from './types';
 import { defaultConfiguration } from './config';
 
 /**
@@ -39,7 +39,11 @@ export class ApiCache {
    * @returns {Promise<unknown>} Cache data
    */
   async getCache(req: Request): Promise<unknown> {
-    const rawData: string | null = await this.redisGetAsync(this.buildKey(req));
+    const keyBuilder: TKeyBuilder = !!this.config.keyBuilders?.[req.method as EHttpMethod]
+      ? <TKeyBuilder>this.config.keyBuilders[req.method as EHttpMethod]
+      : this.buildKey.bind(this);
+
+    const rawData: string | null = await this.redisGetAsync(keyBuilder(req, this.config.prefix));
 
     if (rawData) {
       const buffer: Buffer = await this.decompressAsync(Buffer.from(rawData, 'base64'));
@@ -55,13 +59,17 @@ export class ApiCache {
    * @param {Request} req Express request associated with the data
    * @param {unknown} data - Data to cache
    * @param {number} durationInMS Cache expiration in ms
-   * @returns Promise<string>
+   * @returns Promise<boolean>
    */
   async setCache(req: Request, data: unknown, durationInMS: number = this.config.expirationInMS): Promise<boolean> {
+    const keyBuilder: TKeyBuilder = !!this.config.keyBuilders?.[req.method as EHttpMethod]
+      ? <TKeyBuilder>this.config.keyBuilders[req.method as EHttpMethod]
+      : this.buildKey.bind(this);
+
     const compressedData: Buffer = await this.compressAsync(Buffer.from(flatted.stringify(data)));
 
     const redisOutput = await this.redisSetAsync(
-      this.buildKey(req),
+      keyBuilder(req, this.config.prefix),
       compressedData.toString('base64'),
       ERedisFlag.EXPIRATION_IN_MS,
       durationInMS,
