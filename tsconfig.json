@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "outDir": "dist",
     "lib": ["ESNext"],
-    "target": "ES5",
+    "target": "esnext",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "strict": true,
