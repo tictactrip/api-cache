@@ -1,5 +1,5 @@
 import { brotliCompress, brotliDecompress } from 'zlib';
-import * as redis from 'redis';
+import Redis from 'ioredis';
 import { promisify } from 'util';
 import { Request } from 'express';
 import { toPairs } from 'lodash';
@@ -12,23 +12,19 @@ import { defaultConfiguration } from './config';
  * @description Get and set redis cache for a given express route.
  */
 export class ApiCache {
-  private readonly redis: redis.RedisClient;
+  public readonly redis: Redis;
   private readonly compressAsync: (buffer: Buffer) => Promise<Buffer>;
   private readonly decompressAsync: (buffer: Buffer) => Promise<Buffer>;
   private config: IApiCacheConfiguration;
-  public redisSetAsync: (key: string, value: string, flag?: ERedisFlag, expirationInMS?: number) => Promise<unknown>;
-  public redisGetAsync: (key: string) => Promise<string | null>;
 
   /**
    * @description Constructor.
-   * @param {RedisClient} redis
+   * @param {Redis} redis
    * @param {IApiCacheConfiguration} config
    */
-  constructor(redis: redis.RedisClient, config?: IApiCacheConfiguration) {
+  constructor(redis: Redis, config?: IApiCacheConfiguration) {
     this.redis = redis;
     this.config = { ...defaultConfiguration, ...config };
-    this.redisSetAsync = promisify(this.redis.set).bind(this.redis);
-    this.redisGetAsync = promisify(this.redis.get).bind(this.redis);
     this.compressAsync = promisify(brotliCompress);
     this.decompressAsync = promisify(brotliDecompress);
   }
@@ -43,7 +39,7 @@ export class ApiCache {
       ? <TKeyBuilder>this.config.keyBuilders[req.method as EHttpMethod]
       : this.buildKey.bind(this);
 
-    const rawData: string | null = await this.redisGetAsync(keyBuilder(req, this.config.prefix));
+    const rawData: string | null = await this.redis.get(keyBuilder(req, this.config.prefix));
 
     if (rawData) {
       const buffer: Buffer = await this.decompressAsync(Buffer.from(rawData, 'base64'));
@@ -68,7 +64,7 @@ export class ApiCache {
 
     const compressedData: Buffer = await this.compressAsync(Buffer.from(flatted.stringify(data)));
 
-    const redisOutput = await this.redisSetAsync(
+    const redisOutput = await this.redis.set(
       keyBuilder(req, this.config.prefix),
       compressedData.toString('base64'),
       ERedisFlag.EXPIRATION_IN_MS,
